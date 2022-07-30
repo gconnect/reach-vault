@@ -1,30 +1,42 @@
 'reach 0.1';
 
-const COUNTDOWNTIMER = 30;
+const COUNTDOWNTIMER = 2;
 
 const Shared = {
-  showTime: Fun([UInt], Null)
+  showTime: Fun([UInt], Null),
+  informTimeout: Fun([], Null),
+  seeOutcome: Fun([Bool], Null),
 }
+
 
 export const main = Reach.App(() => {
   const A = Participant('Alice', {
     ...Shared,
     // Specify Alice's interact interface here
     inheritance: UInt,
-    getChoice: Fun([], Bool)
+    getChoice: Fun([], Bool),
+    deadline: UInt, // time delta (blocks/rounds)
   });
   const B = Participant('Bob', {
     ...Shared,
     // Specify Bob's interact interface here
     acceptTerms: Fun([UInt], Bool)
   });
+
+  // const C = API('Bobs', {
+  //   ...Shared,
+  //   // Specify Bob's interact interface here
+  //   acceptTerms: Fun([UInt], Bool)
+  // })
   init();
 
   A.only(() =>{
     const amt = declassify(interact.inheritance)
+    const timeLeft = declassify(interact.deadline);
+
   })
   // Alice deploys the contract and pays the contract the inheritance
-  A.publish(amt).pay(amt);
+  A.publish(amt, timeLeft).pay(amt);
   commit();
   
   // The second one to publish always attaches
@@ -34,21 +46,87 @@ export const main = Reach.App(() => {
   B.publish(terms);
   commit();
 
-  each([A, B], () => {
-    interact.showTime(COUNTDOWNTIMER)
-  })
+  const informTimeout = () => {
+    each([A, B], () => {
+      // interact.showTime(lastConsensusTime() + COUNTDOWNTIMER)
+      interact.informTimeout();
+    });
+  };
 
-  A.only(() => {
-    const aliceChoice = declassify(interact.getChoice())
-  })
-  A.publish(aliceChoice)
-  if(aliceChoice){
-    transfer(amt).to(A)
-  }else{
-    transfer(amt).to(B)
+  // each([A, B ], () => {
+  //   interact.showTime(COUNTDOWNTIMER)
+  //   interact.informTimeout()
+  // })
+
+  // A.only(() => {
+  //   const aliceChoice = declassify(interact.getChoice())
+  // })
+  // A.publish(aliceChoice)
+  // if(aliceChoice){
+  //   transfer(amt).to(A)
+  // }else{
+  //   transfer(amt).to(B)
+  // }
+  // A.publish()
+
+  // A.only(() => {
+  //   const aliceChoice = declassify(interact.getChoice())
+  // })
+  // A.publish(aliceChoice)
+  //   .timeout(relativeTime(COUNTDOWNTIMER), () => closeTo(B, informTimeout));
+  A.publish()
+  // Level 2 
+  var outcome = true;
+  invariant( balance() == amt);
+  while ( outcome ) {
+    commit();
+    A.only(() => {
+      const aliceChoice = declassify(interact.getChoice())
+    })
+    A.publish(aliceChoice)
+      .timeout(relativeTime(COUNTDOWNTIMER), () =>  closeTo(A, informTimeout))
+    outcome = aliceChoice;
+    continue;
   }
-  commit()
+  // outcome ? transfer(amt).to(A) : transfer(amt).to(B)
+  transfer(amt).to(outcome == true ? A : B);
+  commit();
 
-  // write your program here
+  each([A, B], () => {
+    interact.showTime(lastConsensusTime() + COUNTDOWNTIMER);
+    interact.seeOutcome(outcome);
+    // interact.informTimeout();
+  });
+
+
+  // LEVEL 3
+  // const bobDeadline = relativeTime(timeLeft);
+  // const bobArray = new Set();
+
+  // const [ timedOut, howmany] =
+  // parallelReduce([ true, 0 ])
+  // .invariant(balance() == amt)
+  // .invariant(bobArray.Map.size() == howmany)
+  // .while(!timedOut)
+  // .api_(C.acceptTerms, (response) => {
+  //   check(!bobArray.member(this));
+  //   return [0, (k) => {
+  //     bobArray.insert(this);
+  //     k(true);
+  //     transfer(amt).to(aliceChoice ? A : B);
+  //     return [ timedOut, howmany + 1 ];
+  //   }]; 
+  // }) 
+  // .timeout( bobDeadline, () => {
+  //   const [ [], k ] = call(C.informTimeout);
+  //   k(null);
+  //   return [ false, howmany ]
+  // });
+  // // const leftOver = howmany
+  // // transfer(leftOver * amt).to(A);
+
+  // // transfer(balance()).to(A);
+  // transfer(amt).to(aliceChoice ? A : B);
+  // commit()
   exit();
 });
