@@ -23,11 +23,14 @@ export const main = Reach.App(() => {
     acceptTerms: Fun([UInt], Bool)
   });
 
-  // const C = API('Bobs', {
-  //   ...Shared,
-  //   // Specify Bob's interact interface here
-  //   acceptTerms: Fun([UInt], Bool)
-  // })
+  const V = View("Main", {
+    amount : UInt
+  })
+  const C = API('Bobs', {
+    ...Shared,
+    // Specify Bob's interact interface here
+    acceptTerms: Fun([UInt], Bool)
+  })
   init();
 
   A.only(() =>{
@@ -37,6 +40,7 @@ export const main = Reach.App(() => {
   })
   // Alice deploys the contract and pays the contract the inheritance
   A.publish(amt, timeLeft).pay(amt);
+  V.amount.set(amt)
   commit();
   
   // The second one to publish always attaches

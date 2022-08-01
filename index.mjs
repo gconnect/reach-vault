@@ -78,7 +78,9 @@ await Promise.all([
     }
   }),
 ]);
-
+const price = await ctcAlice.views.Main.amount();
+  console.log(`The inheritance is ${price[0] == 'None' ? '0' : stdlib.parseCurrency(price[1])}.`);
+  
 //Third level implementation
 const users = await stdlib.newTestAccounts(2, startingBalance);
 
