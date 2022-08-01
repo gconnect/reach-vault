@@ -33,7 +33,7 @@ export default function Deployer(props){
     ...stdlib.hasRandom,
     ...Shared("Alice"),
     inheritance: stdlib.parseCurrency(amount),
-    deadline: { ETH: 1, ALGO: 1, CFX: 1000 }[stdlib.connector],
+    deadline: stdlib.bigNumberify(5),
     getChoice: () => {
     //  const choice = Math.floor(Math.random() * 2)
     //  console.log(`Alice choice is ${choiceArray[choice]}`)

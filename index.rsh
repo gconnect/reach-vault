@@ -128,5 +128,24 @@ export const main = Reach.App(() => {
   // // transfer(balance()).to(A);
   // transfer(amt).to(aliceChoice ? A : B);
   // commit()
+  const [ done, x, an ] =
+  parallelReduce([ true, 0, amt ])
+  .invariant(balance() == amt)
+  .while(!done )
+  .api(C.acceptTerms, (nx, k) => {
+    if(nx == an){
+      k(true);
+    }else{
+      k(false);
+    }
+    return [ done, nx, an ];
+  })
+  .timeout( bobDeadline, () => {
+    const [ [], k ] = call(C.informTimeout);
+    k(null);
+    return [ false, x, an ]
+  });
+   transfer(amt).to(aliceChoice ? A : B);
+  commit()
   exit();
 });
