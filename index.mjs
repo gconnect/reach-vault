@@ -80,21 +80,21 @@ await Promise.all([
 ]);
 
 //Third level implementation
-// const users = await stdlib.newTestAccounts(2, startingBalance);
+const users = await stdlib.newTestAccounts(2, startingBalance);
 
-// const ctcWho = (whoi) =>  users[whoi].contract(backend, ctcAlice.getInfo());
+const ctcWho = (whoi) =>  users[whoi].contract(backend, ctcAlice.getInfo());
 
-// const bob = async (whoi) => {
-//   const who = users[whoi];
-//   const ctc = ctcWho(whoi);
-//   console.log('Address of', stdlib.formatAddress(who));
-//   console.log(`Before account balance of ${who} is ${await getAccountBalance(ctc)}`)
-//   await ctc.apis.Bobs.acceptTerms(amt);  
-//     console.log(`After account balance of ${who} is ${await getAccountBalance(ctc)}`)
-//   }
+const bob = async (whoi) => {
+  const who = users[whoi];
+  const ctc = ctcWho(whoi);
+  console.log('Address of', stdlib.formatAddress(who));
+  console.log(`Before account balance of ${who} is ${await getAccountBalance(ctc)}`)
+  await ctc.apis.Bobs.acceptTerms(5000);  
+    console.log(`After account balance of ${who} is ${await getAccountBalance(ctc)}`)
+  }
 
-// await bob(0)
-// await bob(1)
+await bob(0)
+await bob(1)
 
 console.log(`Ending account balance of Alice is ${await getAccountBalance(accAlice)}`)
 console.log(`Ending account balance of Bob is ${await getAccountBalance(accBob)}`)
